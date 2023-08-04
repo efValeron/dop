@@ -1,73 +1,50 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useState} from 'react';
 import './App.css';
+import {Country} from "./Country";
 
-
-type TasksType = {
-  userId: number
-  id: number
-  title: string
-  completed: boolean
+export type BanknotsType = 'Dollars' | 'RUBLS' | 'All'
+export type MoneyType = {
+  banknotes: BanknotsType
+  value: number
+  number: string
 }
 
-export default function App() {
-  const [tasks, setTasks] = useState<TasksType[]>([])
-  // const [value, setValue] = useState("")
-  let value = useRef<HTMLInputElement>(null)
+let defaultMoney: MoneyType[] = [
+  {banknotes: 'Dollars', value: 100, number: ' a1234567890'},
+  {banknotes: 'Dollars', value: 50, number: ' z1234567890'},
+  {banknotes: 'RUBLS', value: 100, number: ' w1234567890'},
+  {banknotes: 'Dollars', value: 100, number: ' e1234567890'},
+  {banknotes: 'Dollars', value: 50, number: ' c1234567890'},
+  {banknotes: 'RUBLS', value: 100, number: ' r1234567890'},
+  {banknotes: 'Dollars', value: 50, number: ' x1234567890'},
+  {banknotes: 'RUBLS', value: 50, number: ' v1234567890'},
+]
 
-  const giveMeData = () => {
-    fetch('https://jsonplaceholder.typicode.com/todos')
-      .then(response => response.json())
-      .then(json => setTasks(json))
-  }
+export const moneyFilter = (money: MoneyType[], filter: BanknotsType): MoneyType[] => {
+  return filter === 'All' ? defaultMoney : filter === 'Dollars' ? money.filter(m => m.banknotes === "Dollars") : money.filter(m => m.banknotes === "RUBLS")
+  //если пришел filter со значением 'All', то возвращаем все банкноты
+  //return money.filter... ну да, придется фильтровать
+}
 
-  useEffect(() => {
-    giveMeData()
-  }, [])
+function App() {
+  const [money, setMoney] = useState<MoneyType[]>(defaultMoney)
+  const [filterValue, setFilterValue] = useState<BanknotsType>('All')
 
-  const showTasksHandler = () => {
-    giveMeData()
-  }
-
-  const hideTasksHandler = () => {
-    setTasks([])
-  }
-
-  const addTaskHandler = () => {
-    if (!value) return
-    if (value.current) {
-      setTasks([{
-        "userId": 1,
-        "id": tasks.length + 1,
-        "title": value.current.value,
-        "completed": false
-      }, ...tasks])
-      value.current.value = ""
-    }
-  }
-
-  console.log(tasks)
+  // а вот сейчас притормаживаем. И вдумчиво: константа filteredMoney получает результат функции moneyFilter
+  // в функцию передаем деньги и фильтр, по которому ихбудем выдавать(ретёрнуть)
+  const filteredMoney = moneyFilter(money, filterValue)
   return (
     <div className="App">
-      <button onClick={showTasksHandler}>+</button>
-      <button onClick={hideTasksHandler}>-</button>
-      <div>
-        <input type="text" ref={value}/>
-        <button onClick={addTaskHandler}>Add
-        </button>
-      </div>
-      <ol>
-        {tasks.map(el => {
-          return (
-            <li key={el.id}>
-              <span>{el.id} - </span>
-              <span>{el.userId} - </span>
-              <span>{el.title} - </span>
-              <input type="checkbox" checked={el.completed}/>
-            </li>
-          )
-        })}
-      </ol>
+      <Country
+        data={filteredMoney}
+        setFilterValue={setFilterValue}
 
+      />
     </div>
   );
 }
+
+// Итого: в этой компоненте у нас мозги. А вот отрисовка где-то глубже. Погружаемся в Country
+
+
+export default App;
